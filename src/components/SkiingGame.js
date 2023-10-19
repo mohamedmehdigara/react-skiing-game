@@ -8,6 +8,7 @@ import PauseButton from './PauseButton';
 import RestartButton from './RestartButton';
 import GameSettings from './GameSettings';
 import HighScoreList from './HighScoreList';
+import SettingsModal from './SettingsModal';
 
 const GameContainer = styled.div`
   position: relative;
@@ -26,8 +27,12 @@ const SkiingGame = () => {
   const [gameSettings, setGameSettings] = useState({
     level: 'medium',
     speed: 5,
+    soundVolume: 50,
+    controlKeys: 'arrows',
+    showHints: true,
   });
   const [highScores, setHighScores] = useState([]);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -69,15 +74,31 @@ const SkiingGame = () => {
     setScore(0);
   };
 
+  const openSettingsModal = () => {
+    setShowSettingsModal(true);
+  };
+
+  const saveGameSettings = (newSettings) => {
+    setGameSettings(newSettings);
+  };
+
   return (
     <GameContainer>
       {isGameOver ? <GameOver /> : null}
       {isPaused && !isGameOver ? <PauseButton label="Pause" onClick={pauseGame} /> : null}
       {!isPaused && isGameOver ? <RestartButton onClick={restartGame} /> : null}
+      {showSettingsModal && (
+        <SettingsModal
+          onClose={() => setShowSettingsModal(false)}
+          onSave={saveGameSettings}
+          settings={gameSettings}
+        />
+      )}
       <Skier position={skierPosition} />
       {obstacles.map((obstacle, index) => (
-        <Obstacle key={index} position={obstacle.position} />
-      ))}
+  <Obstacle key={index} position={obstacle.position} />
+))}
+
       <Scoreboard score={score} />
       <GameSettings
         level={gameSettings.level}
@@ -86,6 +107,7 @@ const SkiingGame = () => {
         onSpeedChange={(e) => setGameSettings({ ...gameSettings, speed: e.target.value })}
       />
       <HighScoreList scores={highScores} />
+      <button onClick={openSettingsModal}>Settings</button>
     </GameContainer>
   );
 };
