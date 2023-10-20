@@ -9,6 +9,11 @@ import RestartButton from './RestartButton';
 import GameSettings from './GameSettings';
 import HighScoreList from './HighScoreList';
 import SettingsModal from './SettingsModal';
+import Achievements from './Achievements';
+import WeatherEffects from './WeatherEffects';
+import MultiplayerLobby from './MultiplayerLobby';
+import SkierAvatar from './SkierAvatar';
+
 
 const GameContainer = styled.div`
   position: relative;
@@ -33,6 +38,16 @@ const SkiingGame = () => {
   });
   const [highScores, setHighScores] = useState([]);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [achievements, setAchievements] = useState([]); // Populate achievements data
+  const [weather, setWeather] = useState('sunny'); // Weather condition
+  const [timeOfDay, setTimeOfDay] = useState('day'); // Time of day
+  const [players, setPlayers] = useState([]); // For multiplayer lobby
+  const [showMultiplayerLobby, setShowMultiplayerLobby] = useState(false);
+  const [playerAvatar, setPlayerAvatar] = useState({
+    avatar: 'default',
+    outfit: 'basic',
+    accessories: [],
+  });
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -82,6 +97,17 @@ const SkiingGame = () => {
     setGameSettings(newSettings);
   };
 
+  const joinMultiplayerLobby = () => {
+    // Logic to join a multiplayer lobby.
+    setPlayers([...players, { name: 'PlayerX' }]); // Add the joining player.
+  };
+
+  const startMultiplayerGame = () => {
+    // Logic to start a multiplayer game.
+    setShowMultiplayerLobby(false);
+    // Add logic to synchronize gameplay with other players.
+  };
+
   return (
     <GameContainer>
       {isGameOver ? <GameOver /> : null}
@@ -96,9 +122,8 @@ const SkiingGame = () => {
       )}
       <Skier position={skierPosition} />
       {obstacles.map((obstacle, index) => (
-  <Obstacle key={index} position={obstacle.position} />
-))}
-
+        <Obstacle key={index} position={obstacle.position} />
+      ))}
       <Scoreboard score={score} />
       <GameSettings
         level={gameSettings.level}
@@ -108,6 +133,16 @@ const SkiingGame = () => {
       />
       <HighScoreList scores={highScores} />
       <button onClick={openSettingsModal}>Settings</button>
+      <Achievements achievements={achievements} />
+      <WeatherEffects weather={weather} timeOfDay={timeOfDay} />
+      {showMultiplayerLobby && (
+        <MultiplayerLobby
+          players={players}
+          onJoin={joinMultiplayerLobby}
+          onStart={startMultiplayerGame}
+        />
+      )}
+      <SkierAvatar avatar={playerAvatar.avatar} outfit={playerAvatar.outfit} accessories={playerAvatar.accessories} />
     </GameContainer>
   );
 };
