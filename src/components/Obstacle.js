@@ -1,7 +1,7 @@
 import React from 'react';
 import styled, { keyframes } from 'styled-components';
 
-const obstacleAnimation = keyframes`
+const fallAnimation = keyframes`
   from {
     transform: translateY(0);
   }
@@ -16,25 +16,21 @@ const ObstacleContainer = styled.div`
   height: 30px;
   left: ${(props) => props.position.x}px;
   top: ${(props) => props.position.y}px;
-  animation: ${obstacleAnimation} 3s linear infinite;
+  animation: ${fallAnimation} 3s linear infinite; /* Use fall animation */
 `;
-
-const ObstacleSvg = () => (
-  <svg
-    width="100%"
-    height="100%"
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 100 100"
-  >
-    {/* Obstacle shape (e.g., a tree) */}
-    <rect x="40" y="20" width="20" height="40" fill="#ff0000" />
-  </svg>
-);
 
 const Obstacle = ({ position }) => {
   return (
     <ObstacleContainer position={position}>
-      <ObstacleSvg />
+      {/* You can customize the appearance of your falling obstacle here */}
+      <div
+        style={{
+          width: '100%',
+          height: '100%',
+          backgroundColor: '#ff0000', // Customize the color
+          borderRadius: '50%', // Make it a circle, or use another shape
+        }}
+      ></div>
     </ObstacleContainer>
   );
 };
