@@ -2,9 +2,18 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import Skier from './Skier';
 import Obstacle from './Obstacle';
-import GameOver from './GameOver'; // Import the GameOver component
-import RestartButton from './RestartButton'; // Import the RestartButton component
-import PauseButton from './PauseButton'; // Import the PauseButton component
+import GameOver from './GameOver';
+import RestartButton from './RestartButton';
+import PauseButton from './PauseButton';
+import Achievements from './Achievements';
+import BackgroundScenery from './BackgroundScenery';
+import GameSettings from './GameSettings';
+import HighScoreList from './HighScoreList';
+import MultiplayerLobby from './MultiplayerLobby';
+import SkierAvatar from './SkierAvatar';
+import WeatherEffects from './WeatherEffects';
+import PowerUp from './PowerUp'; // Import the PowerUp component
+import Scoreboard from './Scoreboard';
 
 const GameContainer = styled.div`
   position: relative;
@@ -15,15 +24,38 @@ const GameContainer = styled.div`
 `;
 
 const SkiingGame = () => {
-  // State variables for the game
   const [skierPosition, setSkierPosition] = useState({ x: 400, y: 200 });
   const [obstacles, setObstacles] = useState([]);
   const [isGameOver, setIsGameOver] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+  const [gameSettings, setGameSettings] = useState({
+    level: 'medium',
+    speed: 5,
+    soundVolume: 50,
+    controlKeys: 'arrows',
+    showHints: true,
+  });
+  const [highScores, setHighScores] = useState([]);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [achievements, setAchievements] = useState([]); 
+  const [weather, setWeather] = useState('sunny');
+  const [timeOfDay, setTimeOfDay] = useState('day');
+  const [players, setPlayers] = useState([]);
+  const [showMultiplayerLobby, setShowMultiplayerLobby] = useState(false);
+  const [playerAvatar, setPlayerAvatar] = useState({
+    avatar: 'default',
+    outfit: 'basic',
+    accessories: [],
+  });
+  const [controlKeys, setControlKeys] = useState(gameSettings.controlKeys);
+
+  // Add PowerUp state
+  const [powerUps, setPowerUps] = useState([]);
+  const [score, setScore] = useState(0); // State for the player's score
+
 
   const moveSkier = (direction) => {
     if (!isPaused && !isGameOver) {
-      // Adjust skier position based on direction (left or right)
       const newX = skierPosition.x + (direction === 'left' ? -10 : 10);
       if (newX >= 0 && newX <= 760) {
         setSkierPosition({ ...skierPosition, x: newX });
@@ -32,9 +64,9 @@ const SkiingGame = () => {
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === 'ArrowLeft') {
+    if (e.key === controlKeys.left) {
       moveSkier('left');
-    } else if (e.key === 'ArrowRight') {
+    } else if (e.key === controlKeys.right) {
       moveSkier('right');
     }
   };
@@ -45,15 +77,32 @@ const SkiingGame = () => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [skierPosition, isPaused, isGameOver]);
+  }, [skierPosition, isPaused, isGameOver, controlKeys]);
+
+  const gameLoop = () => {
+    if (!isPaused && !isGameOver) {
+      setSkierPosition((prevPosition) => ({
+        ...prevPosition,
+        y: prevPosition.y + 1,
+      }));
+
+      if (Math.random() < 0.02) {
+        const newObstacle = {
+          position: {
+            x: Math.random() * 800,
+            y: 0,
+          },
+        };
+        setObstacles((prevObstacles) => [...prevObstacles, newObstacle]);
+      }
+    }
+
+    requestAnimationFrame(gameLoop);
+  };
 
   useEffect(() => {
-    // Implement game logic here:
-    // - Generate obstacles
-    // - Check for collisions
-    // - Update the score
-    // - Handle game over conditions
-  }, [skierPosition, obstacles]);
+    requestAnimationFrame(gameLoop);
+  }, []);
 
   const pauseGame = () => {
     setIsPaused(true);
@@ -64,18 +113,67 @@ const SkiingGame = () => {
     setIsPaused(false);
     setSkierPosition({ x: 400, y: 200 });
     setObstacles([]);
+    setScore(0);
   };
+
+  const openSettingsModal = () => {
+    setShowSettingsModal(true);
+  };
+
+  const saveGameSettings = (newSettings) => {
+    setGameSettings(newSettings);
+    setControlKeys(newSettings.controlKeys);
+  };
+
+  const joinMultiplayerLobby = () => {
+    setPlayers([...players, { name: 'PlayerX' }]);
+  };
+
+  const startMultiplayerGame = () => {
+    setShowMultiplayerLobby(false);
+  };
+
+  // Add initial power-up state
+  const initialPowerUps = [
+    { type: 'speedBoost', position: { x: 200, y: 0 } },
+    { type: 'shield', position: { x: 600, y: 0 } },
+  ];
+
+  // Initialize power-ups
+  useEffect(() => {
+    setPowerUps(initialPowerUps);
+  }, []);
 
   return (
     <GameContainer>
-      {/* Components for the game interface */}
+      <BackgroundScenery weather={weather} timeOfDay={timeOfDay} />
+      <PowerUp powerUps={powerUps} />
+      {isGameOver && <GameOver />}
+      {!isPaused && isGameOver ? <RestartButton onClick={restartGame} /> : null}
+      {isPaused && !isGameOver ? (
+        <PauseButton label="Pause" onClick={pauseGame} />
+      ) : null}
       <Skier position={skierPosition} />
       {obstacles.map((obstacle, index) => (
         <Obstacle key={index} position={obstacle.position} />
       ))}
-      {isGameOver && <GameOver />} {/* Display GameOver component when the game is over */}
-      {!isPaused && isGameOver ? <RestartButton onClick={restartGame} /> : null} {/* Display RestartButton when not paused and the game is over */}
-      {isPaused && !isGameOver ? <PauseButton label="Pause" onClick={pauseGame} /> : null} {/* Display PauseButton when paused and not game over */}
+      <Scoreboard score={score} />
+      <GameSettings
+        level={gameSettings.level}
+        speed={gameSettings.speed}
+        onLevelChange={(e) => setGameSettings({ ...gameSettings, level: e.target.value })}
+        onSpeedChange={(e) => setGameSettings({ ...gameSettings, speed: e.target.value })}
+        onControlKeysChange={(e) =>
+          saveGameSettings({ ...gameSettings, controlKeys: e.target.value })
+        }
+      />
+      <HighScoreList scores={highScores} />
+      <Achievements achievements={achievements} />
+      <WeatherEffects weather={weather} timeOfDay={timeOfDay} />
+      {showMultiplayerLobby && (
+        <MultiplayerLobby players={players} onJoin={joinMultiplayerLobby} onStart={startMultiplayerGame} />
+      )}
+      <SkierAvatar avatar={playerAvatar.avatar} outfit={playerAvatar.outfit} accessories={playerAvatar.accessories} />
     </GameContainer>
   );
 };
