@@ -14,7 +14,6 @@ import WeatherEffects from './WeatherEffects';
 import MultiplayerLobby from './MultiplayerLobby';
 import SkierAvatar from './SkierAvatar';
 
-
 const GameContainer = styled.div`
   position: relative;
   width: 800px;
@@ -48,17 +47,18 @@ const SkiingGame = () => {
     outfit: 'basic',
     accessories: [],
   });
+  const [controlKeys, setControlKeys] = useState(gameSettings.controlKeys);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (!isPaused && !isGameOver) {
         // Handle player controls to move the skier left or right.
-        if (e.key === 'ArrowLeft' && skierPosition.x > 0) {
+        if (e.key === controlKeys.left && skierPosition.x > 0) {
           setSkierPosition((prevPosition) => ({
             ...prevPosition,
             x: prevPosition.x - 10,
           }));
-        } else if (e.key === 'ArrowRight' && skierPosition.x < 760) {
+        } else if (e.key === controlKeys.right && skierPosition.x < 760) {
           setSkierPosition((prevPosition) => ({
             ...prevPosition,
             x: prevPosition.x + 10,
@@ -72,7 +72,7 @@ const SkiingGame = () => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [skierPosition, isPaused, isGameOver]);
+  }, [skierPosition, isPaused, isGameOver, controlKeys]);
 
   // Game logic, obstacle generation, collision detection, etc.
   // Update skierPosition, obstacles, score, isGameOver, and isPaused as the game progresses.
@@ -95,6 +95,7 @@ const SkiingGame = () => {
 
   const saveGameSettings = (newSettings) => {
     setGameSettings(newSettings);
+    setControlKeys(newSettings.controlKeys);
   };
 
   const joinMultiplayerLobby = () => {
@@ -130,6 +131,7 @@ const SkiingGame = () => {
         speed={gameSettings.speed}
         onLevelChange={(e) => setGameSettings({ ...gameSettings, level: e.target.value })}
         onSpeedChange={(e) => setGameSettings({ ...gameSettings, speed: e.target.value })}
+        onControlKeysChange={(e) => saveGameSettings({ ...gameSettings, controlKeys: e.target.value })}
       />
       <HighScoreList scores={highScores} />
       <button onClick={openSettingsModal}>Settings</button>
