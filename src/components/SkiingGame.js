@@ -23,6 +23,7 @@ const GameContainer = styled.div`
 `;
 
 const SkiingGame = () => {
+  // State variables for the game
   const [skierPosition, setSkierPosition] = useState({ x: 400, y: 200 });
   const [obstacles, setObstacles] = useState([]);
   const [score, setScore] = useState(0);
@@ -49,38 +50,45 @@ const SkiingGame = () => {
   });
   const [controlKeys, setControlKeys] = useState(gameSettings.controlKeys);
 
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (!isPaused && !isGameOver) {
-        // Handle player controls to move the skier left or right.
-        if (e.key === controlKeys.left && skierPosition.x > 0) {
-          setSkierPosition((prevPosition) => ({
-            ...prevPosition,
-            x: prevPosition.x - 10,
-          }));
-        } else if (e.key === controlKeys.right && skierPosition.x < 760) {
-          setSkierPosition((prevPosition) => ({
-            ...prevPosition,
-            x: prevPosition.x + 10,
-          }));
-        }
+  // Define game loop for skier movement and obstacle generation
+  const gameLoop = () => {
+    if (!isPaused && !isGameOver) {
+      // Update skier position (e.g., move it down the slope)
+      setSkierPosition((prevPosition) => ({
+        ...prevPosition,
+        y: prevPosition.y + 1, // Adjust the speed as needed
+      }));
+
+      // Generate obstacles (e.g., randomly or based on game settings)
+      if (Math.random() < 0.02) {
+        const newObstacle = {
+          position: {
+            x: Math.random() * 800, // Random X position
+            y: 0, // Start at the top
+          },
+        };
+        setObstacles((prevObstacles) => [...prevObstacles, newObstacle]);
       }
-    };
 
-    window.addEventListener('keydown', handleKeyDown);
+      // Add collision detection logic to check for collisions with obstacles
+      // Update score, trigger game over, etc.
+    }
 
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [skierPosition, isPaused, isGameOver, controlKeys]);
+    // Continue the game loop
+    requestAnimationFrame(gameLoop);
+  };
 
-  // Game logic, obstacle generation, collision detection, etc.
-  // Update skierPosition, obstacles, score, isGameOver, and isPaused as the game progresses.
+  // Start the game loop when the component mounts
+  useEffect(() => {
+    requestAnimationFrame(gameLoop);
+  }, []);
 
+  // Function to pause the game
   const pauseGame = () => {
     setIsPaused(true);
   };
 
+  // Function to restart the game
   const restartGame = () => {
     setIsGameOver(false);
     setIsPaused(false);
@@ -89,30 +97,37 @@ const SkiingGame = () => {
     setScore(0);
   };
 
+  // Function to open game settings modal
   const openSettingsModal = () => {
     setShowSettingsModal(true);
   };
 
+  // Function to save game settings
   const saveGameSettings = (newSettings) => {
     setGameSettings(newSettings);
     setControlKeys(newSettings.controlKeys);
   };
 
+  // Function to join a multiplayer lobby
   const joinMultiplayerLobby = () => {
     // Logic to join a multiplayer lobby.
     setPlayers([...players, { name: 'PlayerX' }]); // Add the joining player.
   };
 
+  // Function to start a multiplayer game
   const startMultiplayerGame = () => {
     // Logic to start a multiplayer game.
     setShowMultiplayerLobby(false);
     // Add logic to synchronize gameplay with other players.
   };
 
+  // JSX for the game interface
   return (
     <GameContainer>
       {isGameOver ? <GameOver /> : null}
-      {isPaused && !isGameOver ? <PauseButton label="Pause" onClick={pauseGame} /> : null}
+      {isPaused && !isGameOver ? (
+        <PauseButton label="Pause" onClick={pauseGame} />
+      ) : null}
       {!isPaused && isGameOver ? <RestartButton onClick={restartGame} /> : null}
       {showSettingsModal && (
         <SettingsModal
@@ -144,7 +159,11 @@ const SkiingGame = () => {
           onStart={startMultiplayerGame}
         />
       )}
-      <SkierAvatar avatar={playerAvatar.avatar} outfit={playerAvatar.outfit} accessories={playerAvatar.accessories} />
+      <SkierAvatar
+        avatar={playerAvatar.avatar}
+        outfit={playerAvatar.outfit}
+        accessories={playerAvatar.accessories}
+      />
     </GameContainer>
   );
 };
