@@ -54,6 +54,8 @@ const SkiingGame = () => {
   // Add PowerUp state
   const [powerUps, setPowerUps] = useState([]);
   const [score, setScore] = useState(0);
+  const [lives, setLives] = useState(3);
+
 
   const moveSkier = (direction) => {
     if (!isPaused && !isGameOver) {
@@ -101,20 +103,34 @@ const SkiingGame = () => {
   }, [skierPosition, isPaused, isGameOver, controlKeys]);
 
   useEffect(() => {
-    const generateObstacle = () => {
-      const newObstacle = {
-        position: {
-          x: Math.random() * 800, // Generate random x position
-          y: 0, // Start at the top of the screen
-        },
-      };
-      setObstacles((prevObstacles) => [...prevObstacles, newObstacle]);
-    };
-
     if (!isPaused && !isGameOver) {
-      generateObstacle(); // Generate obstacles continuously
+      const updatedObstacles = obstacles
+        .map((obstacle) => ({
+          ...obstacle,
+          position: {
+            x: obstacle.position.x,
+            y: obstacle.position.y + 10, // Adjust the obstacle fall speed
+          },
+        }))
+        .filter((obstacle) => obstacle.position.y < 400);
+
+      setObstacles(updatedObstacles);
+
+      // Check for collisions
+      const skier = { x: skierPosition.x, y: skierPosition.y };
+
+      for (let obstacle of updatedObstacles) {
+        if (checkCollision(skier, obstacle)) {
+          setLives((prevLives) => prevLives - 1);
+          if (lives === 1) {
+            setIsGameOver(true);
+          }
+          // Handle collision animation or game over logic
+        }
+      }
     }
-  }, [isPaused, isGameOver]);
+  }, [obstacles, isPaused, isGameOver, skierPosition, lives]);
+
 
   const gameLoop = () => {
     if (!isPaused && !isGameOver) {
@@ -165,6 +181,15 @@ const SkiingGame = () => {
     { type: 'speedBoost', position: { x: 200, y: 0 } },
     { type: 'shield', position: { x: 600, y: 0 } },
   ];
+
+  const checkCollision = (skier, obstacle) => {
+    return (
+      skier.x < obstacle.x + 40 &&
+      skier.x + 40 > obstacle.x &&
+      skier.y < obstacle.y + 40 &&
+      skier.y + 40 > obstacle.y
+    );
+  };
 
   // Initialize power-ups
   useEffect(() => {
