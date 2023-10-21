@@ -10,7 +10,7 @@ const PowerUpContainer = styled.div`
   top: ${(props) => props.position.y}px;
 `;
 
-const PowerUp = ({ position }) => {
+const PowerUp = ({ position = { x: 0, y: 0 }  }) => {
   return <PowerUpContainer position={position}></PowerUpContainer>;
 };
 
