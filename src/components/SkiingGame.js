@@ -5,15 +5,15 @@ import Obstacle from './Obstacle';
 import GameOver from './GameOver';
 import RestartButton from './RestartButton';
 import PauseButton from './PauseButton';
-import Achievements from './Achievements';
 import BackgroundScenery from './BackgroundScenery';
-import GameSettings from './GameSettings';
+import PowerUp from './PowerUp';
+import Scoreboard from './Scoreboard';
+import GameSettings from './GameSettings'; // Import the GameSettings component
 import HighScoreList from './HighScoreList';
+import Achievements from './Achievements';
 import MultiplayerLobby from './MultiplayerLobby';
 import SkierAvatar from './SkierAvatar';
 import WeatherEffects from './WeatherEffects';
-import PowerUp from './PowerUp'; // Import the PowerUp component
-import Scoreboard from './Scoreboard';
 
 const GameContainer = styled.div`
   position: relative;
@@ -28,6 +28,7 @@ const SkiingGame = () => {
   const [obstacles, setObstacles] = useState([]);
   const [isGameOver, setIsGameOver] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+
   const [gameSettings, setGameSettings] = useState({
     level: 'medium',
     speed: 5,
@@ -35,9 +36,10 @@ const SkiingGame = () => {
     controlKeys: 'arrows',
     showHints: true,
   });
+
   const [highScores, setHighScores] = useState([]);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
-  const [achievements, setAchievements] = useState([]); 
+  const [achievements, setAchievements] = useState([]);
   const [weather, setWeather] = useState('sunny');
   const [timeOfDay, setTimeOfDay] = useState('day');
   const [players, setPlayers] = useState([]);
@@ -51,8 +53,7 @@ const SkiingGame = () => {
 
   // Add PowerUp state
   const [powerUps, setPowerUps] = useState([]);
-  const [score, setScore] = useState(0); // State for the player's score
-
+  const [score, setScore] = useState(0);
 
   const moveSkier = (direction) => {
     if (!isPaused && !isGameOver) {
@@ -79,13 +80,8 @@ const SkiingGame = () => {
     };
   }, [skierPosition, isPaused, isGameOver, controlKeys]);
 
-  const gameLoop = () => {
+  const generateObstacle = () => {
     if (!isPaused && !isGameOver) {
-      setSkierPosition((prevPosition) => ({
-        ...prevPosition,
-        y: prevPosition.y + 1,
-      }));
-
       if (Math.random() < 0.02) {
         const newObstacle = {
           position: {
@@ -95,6 +91,20 @@ const SkiingGame = () => {
         };
         setObstacles((prevObstacles) => [...prevObstacles, newObstacle]);
       }
+    }
+  };
+
+  useEffect(() => {
+    const obstacleGenerationInterval = setInterval(generateObstacle, 1000);
+    return () => clearInterval(obstacleGenerationInterval);
+  }, [isPaused, isGameOver]);
+
+  const gameLoop = () => {
+    if (!isPaused && !isGameOver) {
+      setSkierPosition((prevPosition) => ({
+        ...prevPosition,
+        y: prevPosition.y + 1,
+      }));
     }
 
     requestAnimationFrame(gameLoop);
@@ -153,7 +163,9 @@ const SkiingGame = () => {
       {isPaused && !isGameOver ? (
         <PauseButton label="Pause" onClick={pauseGame} />
       ) : null}
-      <Skier position={skierPosition} />
+      {skierPosition && (
+        <Skier position={skierPosition} />
+      )}
       {obstacles.map((obstacle, index) => (
         <Obstacle key={index} position={obstacle.position} />
       ))}
@@ -161,8 +173,12 @@ const SkiingGame = () => {
       <GameSettings
         level={gameSettings.level}
         speed={gameSettings.speed}
-        onLevelChange={(e) => setGameSettings({ ...gameSettings, level: e.target.value })}
-        onSpeedChange={(e) => setGameSettings({ ...gameSettings, speed: e.target.value })}
+        onLevelChange={(e) =>
+          setGameSettings({ ...gameSettings, level: e.target.value })
+        }
+        onSpeedChange={(e) =>
+          setGameSettings({ ...gameSettings, speed: e.target.value })
+        }
         onControlKeysChange={(e) =>
           saveGameSettings({ ...gameSettings, controlKeys: e.target.value })
         }
@@ -171,9 +187,17 @@ const SkiingGame = () => {
       <Achievements achievements={achievements} />
       <WeatherEffects weather={weather} timeOfDay={timeOfDay} />
       {showMultiplayerLobby && (
-        <MultiplayerLobby players={players} onJoin={joinMultiplayerLobby} onStart={startMultiplayerGame} />
+        <MultiplayerLobby
+          players={players}
+          onJoin={joinMultiplayerLobby}
+          onStart={startMultiplayerGame}
+        />
       )}
-      <SkierAvatar avatar={playerAvatar.avatar} outfit={playerAvatar.outfit} accessories={playerAvatar.accessories} />
+      <SkierAvatar
+        avatar={playerAvatar.avatar}
+        outfit={playerAvatar.outfit}
+        accessories={playerAvatar.accessories}
+      />
     </GameContainer>
   );
 };
