@@ -115,14 +115,14 @@ const SkiingGame = () => {
         setObstacles((prevObstacles) => [...prevObstacles, newObstacle]);
 
         // Move existing obstacles down
-        const updatedObstacles = prevObstacles.map((obstacle) => ({
+        const updatedObstacles = obstacles.map((obstacle) => ({
           ...obstacle,
           position: {
             x: obstacle.position.x,
             y: obstacle.position.y + 10, // Adjust the obstacle fall speed
           },
         }));
-
+        
         setObstacles(updatedObstacles);
       }
     };
