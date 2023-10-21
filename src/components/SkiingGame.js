@@ -57,18 +57,38 @@ const SkiingGame = () => {
 
   const moveSkier = (direction) => {
     if (!isPaused && !isGameOver) {
-      const newX = skierPosition.x + (direction === 'left' ? -10 : 10);
-      if (newX >= 0 && newX <= 760) {
-        setSkierPosition({ ...skierPosition, x: newX });
+      const { x, y } = skierPosition;
+      let newX = x;
+      let newY = y;
+
+      if (direction === 'left') {
+        newX = x - 10;
+      } else if (direction === 'right') {
+        newX = x + 10;
+      } else if (direction === 'up') {
+        newY = y - 10;
+      } else if (direction === 'down') {
+        newY = y + 10;
       }
+
+      // Ensure the skier stays within bounds
+      newX = Math.max(0, Math.min(760, newX));
+      newY = Math.max(0, Math.min(360, newY));
+
+      setSkierPosition({ x: newX, y: newY });
     }
   };
 
+
   const handleKeyDown = (e) => {
-    if (e.key === controlKeys.left) {
+    if (e.key === 'ArrowLeft' || e.key === 'Left') {
       moveSkier('left');
-    } else if (e.key === controlKeys.right) {
+    } else if (e.key === 'ArrowRight' || e.key === 'Right') {
       moveSkier('right');
+    } else if (e.key === 'ArrowUp' || e.key === 'Up') {
+      moveSkier('up');
+    } else if (e.key === 'ArrowDown' || e.key === 'Down') {
+      moveSkier('down');
     }
   };
 
@@ -80,23 +100,20 @@ const SkiingGame = () => {
     };
   }, [skierPosition, isPaused, isGameOver, controlKeys]);
 
-  const generateObstacle = () => {
-    if (!isPaused && !isGameOver) {
-      if (Math.random() < 0.02) {
-        const newObstacle = {
-          position: {
-            x: Math.random() * 800,
-            y: 0,
-          },
-        };
-        setObstacles((prevObstacles) => [...prevObstacles, newObstacle]);
-      }
-    }
-  };
-
   useEffect(() => {
-    const obstacleGenerationInterval = setInterval(generateObstacle, 1000);
-    return () => clearInterval(obstacleGenerationInterval);
+    const generateObstacle = () => {
+      const newObstacle = {
+        position: {
+          x: Math.random() * 800, // Generate random x position
+          y: 0, // Start at the top of the screen
+        },
+      };
+      setObstacles((prevObstacles) => [...prevObstacles, newObstacle]);
+    };
+
+    if (!isPaused && !isGameOver) {
+      generateObstacle(); // Generate obstacles continuously
+    }
   }, [isPaused, isGameOver]);
 
   const gameLoop = () => {
