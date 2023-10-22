@@ -54,8 +54,6 @@ const SkiingGame = () => {
   const [powerUps, setPowerUps] = useState([]);
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
-  const [prevObstacles, setPrevObstacles] = useState([]);
-
 
   const moveSkier = (direction) => {
     if (!isPaused && !isGameOver) {
@@ -120,19 +118,26 @@ const SkiingGame = () => {
           },
         };
 
+        // Update the obstacles array with the new obstacle
         setObstacles((prevObstacles) => [...prevObstacles, newObstacle]);
 
         // Move existing obstacles down
-        const updatedObstacles = prevObstacles.map((obstacle) => ({
+        const updatedObstacles = obstacles.map((obstacle) => ({
           ...obstacle,
           position: {
             x: obstacle.position.x,
-            y: obstacle.position.y + 10,
+            y: obstacle.position.y + gameSettings.speed, // Adjust the obstacle fall speed
           },
         }));
 
-        setObstacles(updatedObstacles);
+        // Remove obstacles that have reached the end of the screen
+        const filteredObstacles = updatedObstacles.filter(
+          (obstacle) => obstacle.position.y < 400
+        );
 
+        setObstacles(filteredObstacles);
+
+        // Check for collisions
         updatedObstacles.forEach((obstacle) => {
           if (checkCollision(skierPosition, obstacle.position)) {
             handleCollision();
@@ -141,8 +146,10 @@ const SkiingGame = () => {
       }
     };
 
+    // Call the obstacle update function periodically to keep obstacles falling
     const obstacleInterval = setInterval(updateObstacles, 1000);
 
+    // Cleanup interval when the component unmounts
     return () => {
       clearInterval(obstacleInterval);
     };
@@ -214,13 +221,12 @@ const SkiingGame = () => {
 
   const checkCollision = (skier, obstacle) => {
     return (
-      skier.x < obstacle.x + 40 &&
-      skier.x + 40 > obstacle.x &&
-      skier.y < obstacle.y + 40 &&
-      skier.y + 40 > obstacle.y
+      skier.x < obstacle.position.x + 40 &&
+      skier.x + 40 > obstacle.position.x &&
+      skier.y < obstacle.position.y + 40 &&
+      skier.y + 40 > obstacle.position.y
     );
   };
-  
 
   return (
     <GameContainer>
@@ -237,6 +243,7 @@ const SkiingGame = () => {
       {obstacles.map((obstacle, index) => (
         <Obstacle key={index} position={obstacle.position} />
       ))}
+      
       {lives < 3 && (
         <CollisionAnimation position={skierPosition} onAnimationEnd={handleCollision} />
       )}
