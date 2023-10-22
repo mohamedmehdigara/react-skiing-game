@@ -105,50 +105,58 @@ const SkiingGame = () => {
     };
   }, [skierPosition, isPaused, isGameOver]);
 
-  useEffect(() => {
-    const updateObstacles = () => {
-      if (!isPaused && !isGameOver) {
-        // Generate a new obstacle
-        if (Math.random() < 0.1) {
-          const newObstacle = {
-            position: {
-              x: Math.random() * 800,
-              y: 0,
-            },
-          };
-          setObstacles((prevObstacles) => [...prevObstacles, newObstacle]);
-        }
-
-        // Move existing obstacles down
-        const updatedObstacles = obstacles.map((obstacle) => ({
-          ...obstacle,
-          position: {
-            x: obstacle.position.x,
-            y: obstacle.position.y + gameSettings.speed, // Adjust the obstacle fall speed
-          },
-        }));
-
-        // Remove obstacles that have reached the end of the screen
-        const filteredObstacles = updatedObstacles.filter(
-          (obstacle) => obstacle.position.y < 400
-        );
-
-        setObstacles(filteredObstacles);
-
-        updatedObstacles.forEach((obstacle) => {
-          if (checkCollision(skierPosition, obstacle.position)) {
-            handleCollision();
+ useEffect(() => {
+  const updateObstacles = () => {
+    if (!isPaused && !isGameOver) {
+      const updatedObstacles = obstacles.map((obstacle) => {
+        if (obstacle.position) {
+          const newY = obstacle.position.y + gameSettings.speed;
+          // Check if the obstacle is still within the visible area
+          if (newY <= 400) {
+            return {
+              ...obstacle,
+              position: {
+                x: obstacle.position.x,
+                y: newY,
+              },
+            };
           }
-        });
+          // Obstacle has reached the end of the screen, don't include it in the updated obstacles
+          return null;
+        }
+        return obstacle; // Return the obstacle as is if 'position' is undefined
+      });
+
+      // Remove obstacles that have fallen off the screen
+      const filteredObstacles = updatedObstacles.filter((obstacle) => obstacle !== null);
+
+      // Generate new obstacles
+      if (Math.random() < 0.1) {
+        const newObstacle = {
+          position: {
+            x: Math.random() * 800,
+            y: 0,
+          },
+        };
+        filteredObstacles.push(newObstacle);
       }
-    };
 
-    const obstacleInterval = setInterval(updateObstacles, 100);
+      setObstacles(filteredObstacles);
 
-    return () => {
-      clearInterval(obstacleInterval);
-    };
-  }, [isPaused, isGameOver]);
+      updatedObstacles.forEach((obstacle) => {
+        if (obstacle && checkCollision(skierPosition, obstacle.position)) {
+          handleCollision();
+        }
+      });
+    }
+  };
+
+  const obstacleInterval = setInterval(updateObstacles, 100);
+
+  return () => {
+    clearInterval(obstacleInterval);
+  };
+}, [isPaused, isGameOver]);
 
   const gameLoop = () => {
     if (!isPaused && !isGameOver) {
@@ -190,15 +198,29 @@ const SkiingGame = () => {
   // ...
 
 const saveGameSettings = (newSettings) => {
-  setGameSettings(newSettings);
+  // Assuming newSettings is an object with properties like 'level', 'speed', etc.
+  // Update the game settings with the new values
+  setGameSettings({
+    ...gameSettings, // Preserve existing settings
+    ...newSettings,  // Override with new settings
+  });
 };
 
 const joinMultiplayerLobby = () => {
   // Implement the logic for joining the multiplayer lobby
+  // This may involve setting some state to indicate that the player is in the lobby
+  // and possibly connecting to a multiplayer server.
+  // For example:
+  setShowMultiplayerLobby(true); // Show the multiplayer lobby component
 };
 
 const startMultiplayerGame = () => {
   // Implement the logic for starting a multiplayer game
+  // This may involve transitioning from the lobby to the game itself
+  // and setting up connections or game state for multiplayer gameplay.
+  // For example:
+  setShowMultiplayerLobby(false); // Hide the multiplayer lobby component
+  // Implement further logic to start the multiplayer game
 };
 
 // ...
