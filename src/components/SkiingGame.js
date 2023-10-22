@@ -5,16 +5,16 @@ import Obstacle from './Obstacle';
 import GameOver from './GameOver';
 import RestartButton from './RestartButton';
 import PauseButton from './PauseButton';
-import BackgroundScenery from './BackgroundScenery';
 import PowerUp from './PowerUp';
 import Scoreboard from './Scoreboard';
-import GameSettings from './GameSettings';
+import GameSettings from './GameSettings'; // Import the missing components
 import HighScoreList from './HighScoreList';
 import Achievements from './Achievements';
 import MultiplayerLobby from './MultiplayerLobby';
 import SkierAvatar from './SkierAvatar';
 import WeatherEffects from './WeatherEffects';
 import CollisionAnimation from './CollisionAnimation';
+import BackgroundScenery from './BackgroundScenery'; // Import the missing component
 
 const GameContainer = styled.div`
   position: relative;
@@ -37,7 +37,6 @@ const SkiingGame = () => {
     showHints: true,
   });
   const [highScores, setHighScores] = useState([]);
-  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [achievements, setAchievements] = useState([]);
   const [weather, setWeather] = useState('sunny');
   const [timeOfDay, setTimeOfDay] = useState('day');
@@ -48,7 +47,6 @@ const SkiingGame = () => {
     outfit: 'basic',
     accessories: [],
   });
-  const [controlKeys, setControlKeys] = useState(gameSettings.controlKeys);
 
   // Add PowerUp state
   const [powerUps, setPowerUps] = useState([]);
@@ -105,21 +103,21 @@ const SkiingGame = () => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [skierPosition, isPaused, isGameOver, controlKeys]);
+  }, [skierPosition, isPaused, isGameOver]);
 
   useEffect(() => {
     const updateObstacles = () => {
       if (!isPaused && !isGameOver) {
         // Generate a new obstacle
-        const newObstacle = {
-          position: {
-            x: Math.random() * 800,
-            y: 0,
-          },
-        };
-
-        // Update the obstacles array with the new obstacle
-        setObstacles((prevObstacles) => [...prevObstacles, newObstacle]);
+        if (Math.random() < 0.1) {
+          const newObstacle = {
+            position: {
+              x: Math.random() * 800,
+              y: 0,
+            },
+          };
+          setObstacles((prevObstacles) => [...prevObstacles, newObstacle]);
+        }
 
         // Move existing obstacles down
         const updatedObstacles = obstacles.map((obstacle) => ({
@@ -137,7 +135,6 @@ const SkiingGame = () => {
 
         setObstacles(filteredObstacles);
 
-        // Check for collisions
         updatedObstacles.forEach((obstacle) => {
           if (checkCollision(skierPosition, obstacle.position)) {
             handleCollision();
@@ -146,10 +143,8 @@ const SkiingGame = () => {
       }
     };
 
-    // Call the obstacle update function periodically to keep obstacles falling
-    const obstacleInterval = setInterval(updateObstacles, 1000);
+    const obstacleInterval = setInterval(updateObstacles, 100);
 
-    // Cleanup interval when the component unmounts
     return () => {
       clearInterval(obstacleInterval);
     };
@@ -161,16 +156,6 @@ const SkiingGame = () => {
         ...prevPosition,
         y: prevPosition.y + 1,
       }));
-
-      if (Math.random() < 0.02) {
-        const newObstacle = {
-          position: {
-            x: Math.random() * 800,
-            y: 0,
-          },
-        };
-        setObstacles((prevObstacles) => [...prevObstacles, newObstacle]);
-      }
     }
 
     requestAnimationFrame(gameLoop);
@@ -193,32 +178,6 @@ const SkiingGame = () => {
     setLives(3);
   };
 
-  const openSettingsModal = () => {
-    setShowSettingsModal(true);
-  };
-
-  const saveGameSettings = (newSettings) => {
-    setGameSettings(newSettings);
-    setControlKeys(newSettings.controlKeys);
-  };
-
-  const joinMultiplayerLobby = () => {
-    setPlayers([...players, { name: 'PlayerX' }]);
-  };
-
-  const startMultiplayerGame = () => {
-    setShowMultiplayerLobby(false);
-  };
-
-  const initialPowerUps = [
-    { type: 'speedBoost', position: { x: 200, y: 0 } },
-    { type: 'shield', position: { x: 600, y: 0 } },
-  ];
-
-  useEffect(() => {
-    setPowerUps(initialPowerUps);
-  }, []);
-
   const checkCollision = (skier, obstacle) => {
     return (
       skier.x < obstacle.position.x + 40 &&
@@ -227,6 +186,23 @@ const SkiingGame = () => {
       skier.y + 40 > obstacle.position.y
     );
   };
+
+  // ...
+
+const saveGameSettings = (newSettings) => {
+  setGameSettings(newSettings);
+};
+
+const joinMultiplayerLobby = () => {
+  // Implement the logic for joining the multiplayer lobby
+};
+
+const startMultiplayerGame = () => {
+  // Implement the logic for starting a multiplayer game
+};
+
+// ...
+
 
   return (
     <GameContainer>
