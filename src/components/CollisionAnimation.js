@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
 
 const expand = keyframes`
@@ -22,10 +22,12 @@ const rotate = keyframes`
 // Define the explosionAnimation keyframe
 const explosionAnimation = keyframes`
   0% {
-    /* Define your animation properties here */
+    opacity: 1;
+    transform: scale(1);
   }
   100% {
-    /* Define your animation properties here */
+    opacity: 0;
+    transform: scale(2);
   }
 `;
 
@@ -62,12 +64,9 @@ const AnimationContainer = styled.div`
 `;
 
 const CollisionAnimation = ({ position, onAnimationEnd }) => {
-  const [animationFinished, setAnimationFinished] = useState(false);
-
   useEffect(() => {
     // Listen for the animation end event
     const onAnimationEndListener = () => {
-      setAnimationFinished(true);
       onAnimationEnd(); // Execute a callback function when the animation ends
     };
 
